@@ -2,6 +2,9 @@ const fs = require('fs');
 const path = require('path');
 const _ = require('underscore');
 const counter = require('./counter');
+var Promise = require('bluebird');
+var readFileAsync = Promise.promisify(fs.readFile);
+var readdirAsync = Promise.promisify(fs.readdir);
 
 var items = {};
 
@@ -23,33 +26,53 @@ exports.create = (text, callback) => {
 
 exports.readAll = (callback) => {
   var data = [];
+  var result = [];
   // _.each(items, (text, id) => {
   //   data.push({ id, text });
   // });
   // callback(null, data);
-  fs.readdir(exports.dataDir, (err, files) => {
-    if (err) {
-      callback(null, 0);
-    } else {
-      
-      // _.each(files, (fileName) => {
-      //   fs.readFile(path.join(exports.dataDir, fileName), (err, fileData) => {
-      //     if (err) {
-      //       callback(new Error(`No item with id: ${id}`));
-      //     } else {
-      //       data.push( { 'text': fileData.toString() } );
-      //       callback(null, data);
-      //     }
-      //   });
-      // });
-      // '00001.txt'
-      _.each(files, (fileName) => {
-        var id = fileName.split('.')[0];
-        data.push({id, 'text': id});
+  return readdirAsync(exports.dataDir)
+    .then(function(files) {
+      for (var i = 0; i < files.length; i++) {
+        var id = files[i].split('.')[0];
+        result.push({id});
+        data.push(readFileAsync(path.join(exports.dataDir, files[i])));
+      }
+      Promise.all(data).then(function(value) {
+        result.push({value: value.toString});
+        console.log(result);
       });
-      callback(null, data);
-    }
-  });
+    });
+
+    // for (var i = 0; i < files.length; i++) {
+    //   var text = readFileAsync(path.join(exports.dataDir, files[i]));
+    //   // data.push({id, files});
+    //   data.push(text);
+    //   console.log(data);
+    // }
+    // Promise.all(data).then(function() {
+    //   callback(null, data);
+    // });
+    
+    
+    // _.each(files, (fileName) => {
+    //   fs.readFile(path.join(exports.dataDir, fileName), (err, fileData) => {
+    //     if (err) {
+    //       callback(new Error(`No item with id: ${id}`));
+    //     } else {
+    //       data.push( { 'text': fileData.toString() } );
+    //       callback(null, data);
+    //     }
+    //   });
+    // });
+    // '00001.txt'
+    // _.each(files, (fileName) => {
+    //   var id = fileName.split('.')[0];
+    //   data.push({id, 'text': id});
+    // });
+    // callback(null, data);
+  //}
+  //});
 };
 
 exports.readOne = (id, callback) => {
