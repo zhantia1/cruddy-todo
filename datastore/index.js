@@ -15,7 +15,7 @@ exports.create = (text, callback) => {
     //items[id] = text;
     fs.writeFile(path.join(exports.dataDir, id + '.txt'), text, (err) => {
       
-      if (err) {
+      if (err) {  
         throw ('error creating one file');
       } else {
         callback(null, { id, text });
@@ -25,54 +25,52 @@ exports.create = (text, callback) => {
 };
 
 exports.readAll = (callback) => {
-  var data = [];
-  var result = [];
-  // _.each(items, (text, id) => {
-  //   data.push({ id, text });
-  // });
-  // callback(null, data);
-  return readdirAsync(exports.dataDir)
-    .then(function(files) {
-      for (var i = 0; i < files.length; i++) {
-        var id = files[i].split('.')[0];
-        result.push({id});
-        data.push(readFileAsync(path.join(exports.dataDir, files[i])));
-      }
-      Promise.all(data).then(function(value) {
-        result.push({value: value.toString});
-        console.log(result);
-      });
-    });
 
-    // for (var i = 0; i < files.length; i++) {
-    //   var text = readFileAsync(path.join(exports.dataDir, files[i]));
-    //   // data.push({id, files});
-    //   data.push(text);
-    //   console.log(data);
-    // }
-    // Promise.all(data).then(function() {
-    //   callback(null, data);
-    // });
-    
-    
-    // _.each(files, (fileName) => {
-    //   fs.readFile(path.join(exports.dataDir, fileName), (err, fileData) => {
-    //     if (err) {
-    //       callback(new Error(`No item with id: ${id}`));
-    //     } else {
-    //       data.push( { 'text': fileData.toString() } );
-    //       callback(null, data);
-    //     }
-    //   });
-    // });
-    // '00001.txt'
-    // _.each(files, (fileName) => {
-    //   var id = fileName.split('.')[0];
-    //   data.push({id, 'text': id});
-    // });
-    // callback(null, data);
-  //}
-  //});
+  
+  // let data = [];
+  
+  // var files = [];
+  
+  // data = (readdirAsync(exports.dataDir));
+  
+  // for (var i = 0; i < data.length; ++i) {
+  //   files.push(readFileAsync(path.join(exports.dataDir, data[i])));
+  // }
+  
+  // Promise.all(files).then(function() {
+  //   console.log("all the files were created");
+  // });
+  
+  return readdirAsync(exports.dataDir).then(function(files) {
+    Promise.all(files.map(function(fileName) {
+      return exports.readOneAsync(fileName.split('.')[0])
+    })).then(function(list) {
+      callback(null, list);
+    })
+  })
+  
+  
+  
+  // readdirAsync(exports.dataDir).map(function(file) {
+  //   return readFileAsync(path.join(exports.dataDir, file))
+  // }).then(function(content) {
+  //   Promise.all(content).then(function(theContent) {
+  //     console.log();
+  //   });
+  // })
+  
+  // return readdirAsync(exports.dataDir).then(function(files) {
+  //   Promise.all(files).then(function(contents) {
+  //     contents.map(function(file) {
+  //       readFileAsync(path.join(exports.dataDir, file)).then(function(content) {
+  //         var id = file.split('.')[0];
+  //         data.push({id, 'text': content.toString()});
+  //       }).then(function() {
+  //         callback(null, data);
+  //       })
+  //     })
+  //   })
+  // })
 };
 
 exports.readOne = (id, callback) => {
@@ -92,6 +90,8 @@ exports.readOne = (id, callback) => {
     }
   });
 };
+
+exports.readOneAsync = Promise.promisify(exports.readOne);
 
 exports.update = (id, text, callback) => {
   // var item = items[id];
